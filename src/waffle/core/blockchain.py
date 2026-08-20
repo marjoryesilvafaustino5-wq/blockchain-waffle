@@ -32,6 +32,12 @@ class Blockchain:
         self.chain.append(new_block)
         return new_block
 
+    def mine_block(self, block, difficulty=4):
+        target = "0" * difficulty
+        while not block.hash().startswith(target):
+            block.nonce += 1
+        return block
+
     def is_valid(self):
         for i in range(1, len(self.chain)):
             current = self.chain[i]

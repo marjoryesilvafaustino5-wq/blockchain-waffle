@@ -38,6 +38,15 @@ class Blockchain:
             block.nonce += 1
         return block
 
+    def mine_pending_transactions(self, difficulty=4):
+        if not self.pending_transactions:
+            return None
+        data = {"transactions": [t.__dict__ for t in self.pending_transactions]}
+        block = self.add_block(data)
+        self.mine_block(block, difficulty)
+        self.pending_transactions = []
+        return block
+
     def is_valid(self):
         for i in range(1, len(self.chain)):
             current = self.chain[i]

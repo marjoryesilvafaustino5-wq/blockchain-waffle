@@ -15,3 +15,7 @@ class Wallet:
     def sign(self, message):
         data = f"{self.private_key}:{message}"
         return hashlib.sha256(data.encode()).hexdigest()
+
+
+    def verify(self, message, signature):
+        return self.sign(message) == signature

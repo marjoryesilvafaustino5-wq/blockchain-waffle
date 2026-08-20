@@ -4,6 +4,7 @@ from .block import Block
 class Blockchain:
     def __init__(self):
         self.chain = [self.create_genesis_block()]
+        self.pending_transactions = []
 
     def create_genesis_block(self):
         return Block(
@@ -12,6 +13,11 @@ class Blockchain:
             data={"message": "Genesis Block"},
             previous_hash="0",
         )
+
+    def add_transaction(self, transaction, wallet):
+        if not transaction.is_valid(wallet):
+            raise ValueError("Invalid transaction signature")
+        self.pending_transactions.append(transaction)
 
     def add_block(self, data):
         previous_block = self.chain[-1]

@@ -116,6 +116,22 @@ def create_transaction(sender: str, recipient: str, amount: float):
     }
 
 
+@app.get("/transactions/pending")
+def get_pending_transactions():
+    return {
+        "count": len(blockchain.pending_transactions),
+        "transactions": [
+            {
+                "sender": transaction.sender,
+                "recipient": transaction.recipient,
+                "amount": transaction.amount,
+                "signature": transaction.signature,
+            }
+            for transaction in blockchain.pending_transactions
+        ],
+    }
+
+
 @app.post("/network/nodes")
 def add_network_node(address: str):
     network.add_node(address)

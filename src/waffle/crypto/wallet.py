@@ -3,10 +3,31 @@ import json
 import secrets
 from pathlib import Path
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
+from cryptography.hazmat.primitives.serialization import (
+    Encoding,
+    PrivateFormat,
+    PublicFormat,
+    NoEncryption,
+)
+
 
 class Wallet:
     def __init__(self, private_key=None):
-        self.private_key = private_key or secrets.token_hex(32)
+        if private_key:
+            self.private_key = private_key
+        else:
+            self.private_key = secrets.token_hex(32)
+
+        self._private_key_bytes = bytes.fromhex(self.private_key)
+        self._signing_key = Ed25519PrivateKey.from_private_bytes(
+            self._private_key_bytes
+        )
+        self._public_key = self._signing_key.public_key()
+
         self.address = self._create_address()
 
     def _create_address(self):
@@ -15,11 +36,30 @@ class Wallet:
         ).hexdigest()[:40]
 
     def sign(self, message):
-        data = f"{self.private_key}:{message}"
-        return hashlib.sha256(data.encode()).hexdigest()
+        if not isinstance(message, str):
+            message = str(message)
+
+        signature = self._signing_key.sign(message.encode("utf-8"))
+        return signature.hex()
 
     def verify(self, message, signature):
-        return self.sign(message) == signature
+        try:
+            if not isinstance(message, str):
+                message = str(message)
+
+            self._public_key.verify(
+                bytes.fromhex(signature),
+                message.encode("utf-8"),
+            )
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    def public_key(self):
+        return self._public_key.public_bytes(
+            Encoding.Raw,
+            PublicFormat.Raw,
+        ).hex()
 
 
 WALLETS_FILE = Path("waffle_wallets.json")
@@ -47,6 +87,7 @@ def save_wallet(wallets):
                 {
                     "address": wallet.address,
                     "private_key": wallet.private_key,
+                    "public_key": wallet.public_key(),
                 }
                 for wallet in wallets.values()
             ],

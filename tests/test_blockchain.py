@@ -13,7 +13,8 @@ def test_blockchain():
 def test_add_block():
     blockchain = Blockchain()
 
-    blockchain.add_block({"message": "Teste"})
+    block = blockchain.add_block({"message": "Teste"})
+    blockchain.mine_block(block, difficulty=4)
 
     assert len(blockchain.chain) == 2
     assert blockchain.is_valid() is True

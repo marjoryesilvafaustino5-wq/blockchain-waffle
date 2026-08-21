@@ -7,3 +7,9 @@ name = "blockchain-waffle"
 version = "0.1.0"
 description = "Uma blockchain experimental em Python"
 requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

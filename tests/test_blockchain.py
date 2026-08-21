@@ -146,3 +146,22 @@ def test_database_save_and_load(tmp_path):
     assert len(loaded) == 1
     assert loaded[0]["index"] == 0
     assert loaded[0]["data"] == {"message": "Genesis Block"}
+
+def test_currency_supply():
+    from src.waffle.core.blockchain import Blockchain
+
+    blockchain = Blockchain()
+
+    block = blockchain.mine_pending_transactions(
+        miner_address="miner-test"
+    )
+
+    supply = sum(
+        transaction["amount"]
+        for block in blockchain.chain
+        for transaction in block.data.get("transactions", [])
+        if transaction.get("sender") == "SYSTEM"
+    )
+
+    assert supply == 50.0
+    assert block.data["transactions"][-1]["recipient"] == "miner-test"

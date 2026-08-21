@@ -165,3 +165,17 @@ def test_currency_supply():
 
     assert supply == 50.0
     assert block.data["transactions"][-1]["recipient"] == "miner-test"
+
+def test_transaction_negative_amount():
+    wallet = Wallet()
+    blockchain = Blockchain()
+
+    transaction = Transaction(wallet.address, "Bob", -10)
+    transaction.signature = wallet.sign(transaction.message())
+
+    try:
+        blockchain.add_transaction(transaction, wallet)
+    except ValueError as error:
+        assert str(error) == "Invalid transaction amount"
+    else:
+        assert False

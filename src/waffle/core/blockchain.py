@@ -40,6 +40,8 @@ class Blockchain:
         )
 
     def add_transaction(self, transaction, wallet):
+        if transaction.amount <= 0:
+            raise ValueError("Invalid transaction amount")
         if not transaction.is_valid(wallet):
             raise ValueError("Invalid transaction signature")
         if self.get_balance(transaction.sender) < transaction.amount:

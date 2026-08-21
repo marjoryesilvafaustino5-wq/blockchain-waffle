@@ -88,4 +88,12 @@ class Blockchain:
             if current.previous_hash != previous.hash():
                 return False
 
+            transactions = current.data.get("transactions", [])
+            for transaction in transactions:
+                if transaction.get("sender") == "SYSTEM":
+                    if transaction.get("amount") != 50.0:
+                        return False
+                    if transaction.get("signature") != "":
+                        return False
+
         return True

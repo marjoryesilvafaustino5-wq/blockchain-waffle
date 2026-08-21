@@ -115,3 +115,19 @@ def test_transaction_insufficient_balance():
         assert str(error) == "Insufficient balance"
     else:
         assert False
+
+def test_invalid_mining_reward():
+    wallet = Wallet()
+    blockchain = Blockchain()
+
+    block = blockchain.add_block({
+        "transactions": [{
+            "sender": "SYSTEM",
+            "recipient": wallet.address,
+            "amount": 1000.0,
+            "signature": "",
+        }]
+    })
+    blockchain.mine_block(block, difficulty=4)
+
+    assert blockchain.is_valid() is False

@@ -36,6 +36,7 @@ class Blockchain:
         target = "0" * difficulty
         while not block.hash().startswith(target):
             block.nonce += 1
+        block.stored_hash = block.hash()
         return block
 
     def mine_pending_transactions(self, difficulty=4):
@@ -52,6 +53,10 @@ class Blockchain:
             current = self.chain[i]
             previous = self.chain[i - 1]
 
+            if current.hash() != current.hash():
+                return False
+            if current.hash() != current.stored_hash:
+                return False
             if current.previous_hash != previous.hash():
                 return False
 

@@ -10,6 +10,10 @@ class Block:
     data: dict
     previous_hash: str
     nonce: int = 0
+    stored_hash: str = ""
+
+    def __post_init__(self):
+        self.stored_hash = self.hash()
 
     def hash(self) -> str:
         block_data = {

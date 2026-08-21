@@ -151,3 +151,4 @@ __pycache__/
 
 # Blockchain data
 waffle_chain.json
+waffle_wallets.json

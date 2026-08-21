@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from src.waffle.core.blockchain import Blockchain
-from src.waffle.crypto.wallet import Wallet
+from src.waffle.crypto.wallet import Wallet, load_wallets, save_wallet
 from src.waffle.core.transaction import Transaction
 from src.waffle.storage.database import Database
 from src.waffle.network.node import NodeNetwork
@@ -10,7 +10,7 @@ app = FastAPI(title="Waffle Blockchain API")
 
 database = Database()
 blockchain = Blockchain(database)
-wallets = {}
+wallets = load_wallets()
 network = NodeNetwork()
 
 
@@ -57,6 +57,7 @@ def get_balance(address: str):
 def create_wallet():
     wallet = Wallet()
     wallets[wallet.address] = wallet
+    save_wallet(wallets)
     return {
         "address": wallet.address,
         "message": "Wallet created successfully",
@@ -159,4 +160,20 @@ def sync_network():
     return {
         "message": "Longer chain found",
         "blocks": len(longest_chain),
+    }
+
+@app.get("/currency")
+def get_currency():
+    issued = sum(
+        transaction["amount"]
+        for block in blockchain.chain
+        for transaction in block.data.get("transactions", [])
+        if transaction.get("sender") == "SYSTEM"
+    )
+
+    return {
+        "name": "Waffle",
+        "symbol": "WFL",
+        "issued_supply": issued,
+        "max_supply": 21_000_000.0,
     }

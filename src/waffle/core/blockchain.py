@@ -1,6 +1,10 @@
 from .block import Block
 from src.waffle.storage.database import Database
 
+WFL_SYMBOL = "WFL"
+BLOCK_REWARD = 50.0
+MAX_SUPPLY = 21_000_000.0
+
 
 class Blockchain:
     def __init__(self, database=None):
@@ -70,12 +74,20 @@ class Blockchain:
         transactions = [t.__dict__ for t in self.pending_transactions]
 
         if miner_address:
-            transactions.append({
-                "sender": "SYSTEM",
-                "recipient": miner_address,
-                "amount": 50.0,
-                "signature": "",
-            })
+            current_supply = sum(
+                transaction["amount"]
+                for block in self.chain
+                for transaction in block.data.get("transactions", [])
+                if transaction.get("sender") == "SYSTEM"
+            )
+            reward = min(BLOCK_REWARD, MAX_SUPPLY - current_supply)
+            if reward > 0:
+                transactions.append({
+                    "sender": "SYSTEM",
+                    "recipient": miner_address,
+                    "amount": reward,
+                    "signature": "",
+                })
 
         data = {"transactions": transactions}
         block = self.add_block(data)
@@ -113,7 +125,7 @@ class Blockchain:
             transactions = current.data.get("transactions", [])
             for transaction in transactions:
                 if transaction.get("sender") == "SYSTEM":
-                    if transaction.get("amount") != 50.0:
+                    if transaction.get("amount") != BLOCK_REWARD:
                         return False
                     if transaction.get("signature") != "":
                         return False

@@ -49,3 +49,10 @@ def test_detect_tampered_block():
     block.data = {"message": "ALTERADO"}
 
     assert blockchain.is_valid() is False
+
+def test_unmined_block_is_invalid():
+    blockchain = Blockchain()
+
+    blockchain.add_block({"message": "Nao minerado"})
+
+    assert blockchain.is_valid() is False

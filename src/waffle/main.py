@@ -7,10 +7,11 @@ def main():
     wallet = Wallet()
     blockchain = Blockchain()
 
-    blockchain.add_block({
+    block = blockchain.add_block({
         "sender": wallet.address,
         "message": "Minha primeira blockchain Waffle!",
     })
+    blockchain.mine_block(block, difficulty=4)
 
     database = Database()
     database.save(blockchain)

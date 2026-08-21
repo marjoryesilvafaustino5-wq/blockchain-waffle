@@ -48,14 +48,16 @@ class Blockchain:
         self.pending_transactions = []
         return block
 
-    def is_valid(self):
+    def is_valid(self, difficulty=4):
+        target = "0" * difficulty
+
         for i in range(1, len(self.chain)):
             current = self.chain[i]
             previous = self.chain[i - 1]
 
-            if current.hash() != current.hash():
-                return False
             if current.hash() != current.stored_hash:
+                return False
+            if not current.hash().startswith(target):
                 return False
             if current.previous_hash != previous.hash():
                 return False

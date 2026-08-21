@@ -73,3 +73,20 @@ def test_invalid_transaction_signature():
     transaction.signature = "assinatura_invalida"
 
     assert transaction.is_valid(wallet) is False
+
+def test_mine_pending_transactions():
+    wallet = Wallet()
+    transaction = Transaction(wallet.address, "Bob", 10)
+    transaction.signature = wallet.sign(transaction.message())
+
+    blockchain = Blockchain()
+    blockchain.add_transaction(transaction, wallet)
+
+    assert len(blockchain.pending_transactions) == 1
+
+    block = blockchain.mine_pending_transactions(difficulty=4)
+
+    assert block is not None
+    assert len(blockchain.pending_transactions) == 0
+    assert len(blockchain.chain) == 2
+    assert blockchain.is_valid() is True

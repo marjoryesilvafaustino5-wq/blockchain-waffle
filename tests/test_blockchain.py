@@ -1,4 +1,5 @@
 from src.waffle.core.blockchain import Blockchain
+from src.waffle.core.transaction import Transaction
 from src.waffle.crypto.wallet import Wallet
 from src.waffle.storage.database import Database
 
@@ -56,3 +57,11 @@ def test_unmined_block_is_invalid():
     blockchain.add_block({"message": "Nao minerado"})
 
     assert blockchain.is_valid() is False
+
+def test_transaction_signature():
+    wallet = Wallet()
+    transaction = Transaction(wallet.address, "Bob", 10)
+
+    transaction.signature = wallet.sign(transaction.message())
+
+    assert transaction.is_valid(wallet) is True

@@ -131,3 +131,18 @@ def test_invalid_mining_reward():
     blockchain.mine_block(block, difficulty=4)
 
     assert blockchain.is_valid() is False
+
+
+def test_database_save_and_load(tmp_path):
+    from src.waffle.storage.database import Database
+
+    blockchain = Blockchain()
+    database = Database(tmp_path / "waffle_chain.json")
+
+    database.save(blockchain)
+
+    loaded = database.load()
+
+    assert len(loaded) == 1
+    assert loaded[0]["index"] == 0
+    assert loaded[0]["data"] == {"message": "Genesis Block"}

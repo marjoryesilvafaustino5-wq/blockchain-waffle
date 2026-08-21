@@ -1,9 +1,30 @@
 from .block import Block
+from src.waffle.storage.database import Database
 
 
 class Blockchain:
-    def __init__(self):
-        self.chain = [self.create_genesis_block()]
+    def __init__(self, database=None):
+        self.database = database
+
+        if self.database:
+            saved_blocks = self.database.load()
+        else:
+            saved_blocks = []
+
+        if saved_blocks:
+            self.chain = [
+                Block(
+                    index=block["index"],
+                    timestamp=block["timestamp"],
+                    data=block["data"],
+                    previous_hash=block["previous_hash"],
+                    nonce=block["nonce"],
+                )
+                for block in saved_blocks
+            ]
+        else:
+            self.chain = [self.create_genesis_block()]
+
         self.pending_transactions = []
 
     def create_genesis_block(self):
@@ -39,12 +60,13 @@ class Blockchain:
         while not block.hash().startswith(target):
             block.nonce += 1
         block.stored_hash = block.hash()
+
+        if self.database:
+            self.database.save(self)
+
         return block
 
     def mine_pending_transactions(self, difficulty=4, miner_address=None):
-        if not self.pending_transactions:
-            return None
-
         transactions = [t.__dict__ for t in self.pending_transactions]
 
         if miner_address:

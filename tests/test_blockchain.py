@@ -65,3 +65,11 @@ def test_transaction_signature():
     transaction.signature = wallet.sign(transaction.message())
 
     assert transaction.is_valid(wallet) is True
+
+def test_invalid_transaction_signature():
+    wallet = Wallet()
+    transaction = Transaction(wallet.address, "Bob", 10)
+
+    transaction.signature = "assinatura_invalida"
+
+    assert transaction.is_valid(wallet) is False

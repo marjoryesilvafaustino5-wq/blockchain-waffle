@@ -37,3 +37,15 @@ def test_database(tmp_path):
     loaded = database.load()
 
     assert len(loaded) == 2
+
+def test_detect_tampered_block():
+    blockchain = Blockchain()
+
+    block = blockchain.add_block({"message": "Seguro"})
+    blockchain.mine_block(block, difficulty=4)
+
+    assert blockchain.is_valid() is True
+
+    block.data = {"message": "ALTERADO"}
+
+    assert blockchain.is_valid() is False

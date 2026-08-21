@@ -17,6 +17,8 @@ class Blockchain:
     def add_transaction(self, transaction, wallet):
         if not transaction.is_valid(wallet):
             raise ValueError("Invalid transaction signature")
+        if self.get_balance(transaction.sender) < transaction.amount:
+            raise ValueError("Insufficient balance")
         self.pending_transactions.append(transaction)
 
     def add_block(self, data):
@@ -39,14 +41,38 @@ class Blockchain:
         block.stored_hash = block.hash()
         return block
 
-    def mine_pending_transactions(self, difficulty=4):
+    def mine_pending_transactions(self, difficulty=4, miner_address=None):
         if not self.pending_transactions:
             return None
-        data = {"transactions": [t.__dict__ for t in self.pending_transactions]}
+
+        transactions = [t.__dict__ for t in self.pending_transactions]
+
+        if miner_address:
+            transactions.append({
+                "sender": "SYSTEM",
+                "recipient": miner_address,
+                "amount": 50.0,
+                "signature": "",
+            })
+
+        data = {"transactions": transactions}
         block = self.add_block(data)
         self.mine_block(block, difficulty)
         self.pending_transactions = []
         return block
+
+    def get_balance(self, address):
+        balance = 0.0
+
+        for block in self.chain[1:]:
+            transactions = block.data.get("transactions", [])
+            for transaction in transactions:
+                if transaction["sender"] == address:
+                    balance -= transaction["amount"]
+                if transaction["recipient"] == address:
+                    balance += transaction["amount"]
+
+        return balance
 
     def is_valid(self, difficulty=4):
         target = "0" * difficulty

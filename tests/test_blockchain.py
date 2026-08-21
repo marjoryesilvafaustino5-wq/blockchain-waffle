@@ -80,6 +80,17 @@ def test_mine_pending_transactions():
     transaction.signature = wallet.sign(transaction.message())
 
     blockchain = Blockchain()
+
+    funding_block = blockchain.add_block({
+        "transactions": [{
+            "sender": "SYSTEM",
+            "recipient": wallet.address,
+            "amount": 50.0,
+            "signature": "",
+        }]
+    })
+    blockchain.mine_block(funding_block, difficulty=4)
+
     blockchain.add_transaction(transaction, wallet)
 
     assert len(blockchain.pending_transactions) == 1
@@ -88,5 +99,19 @@ def test_mine_pending_transactions():
 
     assert block is not None
     assert len(blockchain.pending_transactions) == 0
-    assert len(blockchain.chain) == 2
+    assert len(blockchain.chain) == 3
     assert blockchain.is_valid() is True
+
+def test_transaction_insufficient_balance():
+    wallet = Wallet()
+    blockchain = Blockchain()
+
+    transaction = Transaction(wallet.address, "Bob", 10)
+    transaction.signature = wallet.sign(transaction.message())
+
+    try:
+        blockchain.add_transaction(transaction, wallet)
+    except ValueError as error:
+        assert str(error) == "Insufficient balance"
+    else:
+        assert False

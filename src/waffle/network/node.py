@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from src.waffle.core.block import Block
+
 
 class NodeNetwork:
     def __init__(self, filename="waffle_nodes.json"):
@@ -61,35 +63,17 @@ class NodeNetwork:
                 continue
 
         if longest_chain and len(longest_chain) > len(blockchain.chain):
-            return longest_chain
-
-        return None
-
-    def replace_chain(self, blockchain):
-        import requests
-
-        longest_chain = None
-
-        for address in self.nodes:
-            try:
-                response = requests.get(
-                    f"{address}/network/chain",
-                    timeout=3,
+            blockchain.chain = [
+                Block(
+                    index=block["index"],
+                    timestamp=block["timestamp"],
+                    data=block["data"],
+                    previous_hash=block["previous_hash"],
+                    nonce=block["nonce"],
+                    stored_hash=block.get("hash", ""),
                 )
-
-                if response.status_code != 200:
-                    continue
-
-                data = response.json()
-                chain = data.get("chain", [])
-
-                if longest_chain is None or len(chain) > len(longest_chain):
-                    longest_chain = chain
-
-            except requests.RequestException:
-                continue
-
-        if longest_chain and len(longest_chain) > len(blockchain.chain):
-            return longest_chain
+                for block in longest_chain
+            ]
+            return blockchain.chain
 
         return None

@@ -4,6 +4,7 @@ from src.waffle.storage.database import Database
 WFL_SYMBOL = "WFL"
 BLOCK_REWARD = 50.0
 MAX_SUPPLY = 21_000_000.0
+FEE_ADDRESS = "WAFFLE_FEES"
 
 
 class Blockchain:
@@ -44,7 +45,7 @@ class Blockchain:
             raise ValueError("Invalid transaction amount")
         if not transaction.is_valid(wallet):
             raise ValueError("Invalid transaction signature")
-        if self.get_balance(transaction.sender) < transaction.amount:
+        if self.get_balance(transaction.sender) < transaction.total:
             raise ValueError("Insufficient balance")
         self.pending_transactions.append(transaction)
 
@@ -73,7 +74,16 @@ class Blockchain:
         return block
 
     def mine_pending_transactions(self, difficulty=4, miner_address=None):
-        transactions = [t.__dict__ for t in self.pending_transactions]
+        transactions = [
+            {
+                "sender": t.sender,
+                "recipient": t.recipient,
+                "amount": t.amount,
+                "fee": t.fee,
+                "signature": t.signature,
+            }
+            for t in self.pending_transactions
+        ]
 
         if miner_address:
             current_supply = sum(
@@ -90,6 +100,16 @@ class Blockchain:
                     "amount": reward,
                     "signature": "",
                 })
+
+        fee_total = sum(transaction.get("fee", 0.0) for transaction in transactions)
+
+        if fee_total > 0:
+            transactions.append({
+                "sender": "SYSTEM",
+                "recipient": FEE_ADDRESS,
+                "amount": fee_total,
+                "signature": "",
+            })
 
         data = {"transactions": transactions}
         block = self.add_block(data)
@@ -127,9 +147,13 @@ class Blockchain:
             transactions = current.data.get("transactions", [])
             for transaction in transactions:
                 if transaction.get("sender") == "SYSTEM":
-                    if transaction.get("amount") != BLOCK_REWARD:
-                        return False
                     if transaction.get("signature") != "":
+                        return False
+
+                    if transaction.get("recipient") == FEE_ADDRESS:
+                        if transaction.get("amount", 0) <= 0:
+                            return False
+                    elif transaction.get("amount") != BLOCK_REWARD:
                         return False
 
         return True

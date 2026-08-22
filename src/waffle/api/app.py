@@ -113,6 +113,8 @@ def create_transaction(sender: str, recipient: str, amount: float):
         "sender": sender,
         "recipient": recipient,
         "amount": amount,
+        "fee": transaction.fee,
+        "total": transaction.total,
     }
 
 

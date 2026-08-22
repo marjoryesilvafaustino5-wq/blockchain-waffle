@@ -180,6 +180,14 @@ def sync_network():
         "blocks": len(longest_chain),
     }
 
+@app.get("/fees")
+def get_fees():
+    return {
+        "address": "WAFFLE_FEES",
+        "balance": blockchain.get_fee_balance(),
+    }
+
+
 @app.get("/currency")
 def get_currency():
     issued = sum(

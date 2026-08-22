@@ -130,6 +130,9 @@ class Blockchain:
 
         return balance
 
+    def get_fee_balance(self):
+        return self.get_balance(FEE_ADDRESS)
+
     def is_valid(self, difficulty=4):
         target = "0" * difficulty
 

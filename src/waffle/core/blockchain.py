@@ -5,6 +5,7 @@ WFL_SYMBOL = "WFL"
 BLOCK_REWARD = 50.0
 MAX_SUPPLY = 21_000_000.0
 FEE_ADDRESS = "WAFFLE_FEES"
+ADMIN_ADDRESS = "WAFFLE_ADMIN"
 
 
 class Blockchain:
@@ -132,6 +133,31 @@ class Blockchain:
 
     def get_fee_balance(self):
         return self.get_balance(FEE_ADDRESS)
+
+    def withdraw_fees(self, admin_address, recipient):
+        if admin_address != ADMIN_ADDRESS:
+            raise ValueError("Unauthorized fee withdrawal")
+
+        amount = self.get_fee_balance()
+
+        if amount <= 0:
+            raise ValueError("No fees available")
+
+        transaction = {
+            "sender": FEE_ADDRESS,
+            "recipient": recipient,
+            "amount": amount,
+            "fee": 0.0,
+            "signature": "",
+        }
+
+        block = self.add_block({
+            "transactions": [transaction],
+        })
+
+        self.mine_block(block)
+
+        return transaction
 
     def is_valid(self, difficulty=4):
         target = "0" * difficulty

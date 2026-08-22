@@ -203,3 +203,30 @@ def get_currency():
         "issued_supply": issued,
         "max_supply": 21_000_000.0,
     }
+
+
+@app.post("/fees/withdraw")
+def withdraw_fees(admin_address: str, recipient: str):
+    try:
+        transaction = blockchain.withdraw_fees(
+            admin_address,
+            recipient,
+        )
+    except ValueError as error:
+        return {"error": str(error)}
+
+    return {
+        "message": "Fees withdrawn successfully",
+        "sender": transaction["sender"],
+        "recipient": transaction["recipient"],
+        "amount": transaction["amount"],
+    }
+
+    return {
+        "message": "Fees withdrawn successfully",
+        "sender": transaction["sender"],
+        "recipient": transaction["recipient"],
+        "amount": transaction["amount"],
+    }
+
+

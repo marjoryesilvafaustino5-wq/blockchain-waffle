@@ -222,11 +222,4 @@ def withdraw_fees(admin_address: str, recipient: str):
         "amount": transaction["amount"],
     }
 
-    return {
-        "message": "Fees withdrawn successfully",
-        "sender": transaction["sender"],
-        "recipient": transaction["recipient"],
-        "amount": transaction["amount"],
-    }
-
 

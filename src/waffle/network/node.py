@@ -89,6 +89,10 @@ class NodeNetwork:
 
         if longest_chain and len(longest_chain) > len(blockchain.chain):
             blockchain.chain = longest_chain
+
+            if blockchain.database:
+                blockchain.database.save(blockchain)
+
             return blockchain.chain
 
         return None

@@ -46,8 +46,16 @@ class Blockchain:
             raise ValueError("Invalid transaction amount")
         if not transaction.is_valid(wallet):
             raise ValueError("Invalid transaction signature")
-        if self.get_balance(transaction.sender) < transaction.total:
+        confirmed_balance = self.get_balance(transaction.sender)
+        pending_total = sum(
+            pending.total
+            for pending in self.pending_transactions
+            if pending.sender == transaction.sender
+        )
+
+        if confirmed_balance - pending_total < transaction.total:
             raise ValueError("Insufficient balance")
+
         self.pending_transactions.append(transaction)
 
     def add_block(self, data):

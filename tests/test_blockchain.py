@@ -329,3 +329,14 @@ def test_blockchain_state():
 
     assert state.get_balance("unknown-address") == 0.0
     assert state.get_fee_balance() == 0.0
+
+
+def test_blockchain_state_circulating_supply():
+    blockchain = Blockchain()
+
+    block = blockchain.mine_pending_transactions(
+        miner_address="miner-test"
+    )
+
+    assert blockchain.state.get_circulating_supply() == 50.0
+    assert block.data["transactions"][-1]["amount"] == 50.0

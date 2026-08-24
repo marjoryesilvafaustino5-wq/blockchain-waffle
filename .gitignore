@@ -154,3 +154,5 @@ waffle_chain.json
 waffle_wallets.json
 src/waffle/crypto/wallet.py.backup2
 waffle_chain_old.json
+
+waffle_pending.json

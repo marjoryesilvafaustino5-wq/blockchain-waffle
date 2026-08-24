@@ -159,7 +159,7 @@ class Blockchain:
             transactions = block.data.get("transactions", [])
             for transaction in transactions:
                 if transaction["sender"] == address:
-                    balance -= transaction["amount"]
+                    balance -= transaction["amount"] + transaction.get("fee", 0.0)
                 if transaction["recipient"] == address:
                     balance += transaction["amount"]
 

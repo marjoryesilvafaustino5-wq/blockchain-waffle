@@ -179,3 +179,67 @@ def test_transaction_negative_amount():
         assert str(error) == "Invalid transaction amount"
     else:
         assert False
+
+
+def test_transaction_fee():
+    wallet = Wallet()
+    transaction = Transaction(wallet.address, "Bob", 10)
+
+    assert transaction.fee == 0.1
+    assert transaction.total == 10.1
+
+
+def test_fee_balance_after_mining():
+    wallet = Wallet()
+    blockchain = Blockchain()
+
+    funding_block = blockchain.add_block({
+        "transactions": [{
+            "sender": "SYSTEM",
+            "recipient": wallet.address,
+            "amount": 50.0,
+            "signature": "",
+        }]
+    })
+    blockchain.mine_block(funding_block, difficulty=4)
+
+    transaction = Transaction(wallet.address, "Bob", 10)
+    transaction.signature = wallet.sign(transaction.message())
+
+    blockchain.add_transaction(transaction, wallet)
+    blockchain.mine_pending_transactions(
+        difficulty=4,
+        miner_address=wallet.address,
+    )
+
+    assert blockchain.get_fee_balance() == 0.1
+
+
+def test_pending_transactions_cannot_overspend():
+    wallet = Wallet()
+    blockchain = Blockchain()
+
+    funding_block = blockchain.add_block({
+        "transactions": [{
+            "sender": "SYSTEM",
+            "recipient": wallet.address,
+            "amount": 50.0,
+            "signature": "",
+        }]
+    })
+    blockchain.mine_block(funding_block, difficulty=4)
+
+    transaction1 = Transaction(wallet.address, "Bob", 30)
+    transaction1.signature = wallet.sign(transaction1.message())
+
+    transaction2 = Transaction(wallet.address, "Carol", 20)
+    transaction2.signature = wallet.sign(transaction2.message())
+
+    blockchain.add_transaction(transaction1, wallet)
+
+    try:
+        blockchain.add_transaction(transaction2, wallet)
+    except ValueError as error:
+        assert str(error) == "Insufficient balance"
+    else:
+        assert False

@@ -55,10 +55,7 @@ def get_balance(address: str):
 
 @app.get("/state")
 def get_state():
-    return {
-        "supply": blockchain.state.get_circulating_supply(),
-        "fee_balance": blockchain.state.get_fee_balance(),
-    }
+    return blockchain.state.get_state()
 
 @app.post("/wallet")
 def create_wallet():

@@ -10,8 +10,16 @@ class BlockchainState:
 
     def get_circulating_supply(self):
         return sum(
-            transaction["amount"]
+            transaction.get("amount", 0.0)
             for block in self.blockchain.chain
             for transaction in block.data.get("transactions", [])
             if transaction.get("sender") == "SYSTEM"
         )
+
+    def get_state(self):
+        return {
+            "symbol": "WFL",
+            "supply": self.get_circulating_supply(),
+            "max_supply": 21_000_000.0,
+            "fee_balance": self.get_fee_balance(),
+        }

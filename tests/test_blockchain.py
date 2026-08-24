@@ -319,3 +319,13 @@ def test_network_rejects_invalid_chain():
     assert network._is_valid_chain(
         [blockchain.chain[0], invalid_block]
     ) is False
+
+
+def test_blockchain_state():
+    from src.waffle.core.state import BlockchainState
+
+    blockchain = Blockchain()
+    state = BlockchainState(blockchain)
+
+    assert state.get_balance("unknown-address") == 0.0
+    assert state.get_fee_balance() == 0.0

@@ -1,5 +1,6 @@
 from .block import Block
 from src.waffle.storage.database import Database
+from .state import BlockchainState
 
 WFL_SYMBOL = "WFL"
 BLOCK_REWARD = 50.0
@@ -11,6 +12,7 @@ ADMIN_ADDRESS = "WAFFLE_ADMIN"
 class Blockchain:
     def __init__(self, database=None):
         self.database = database
+        self.state = BlockchainState(self)
 
         if self.database:
             saved_blocks = self.database.load()

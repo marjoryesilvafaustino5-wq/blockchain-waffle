@@ -243,3 +243,79 @@ def test_pending_transactions_cannot_overspend():
         assert str(error) == "Insufficient balance"
     else:
         assert False
+
+
+def test_network_accepts_longer_valid_chain(monkeypatch, tmp_path):
+    from src.waffle.network.node import NodeNetwork
+
+    blockchain = Blockchain()
+    database = Database(tmp_path / "chain.json")
+    blockchain.database = database
+
+    funding_block = blockchain.add_block({
+        "transactions": [{
+            "sender": "SYSTEM",
+            "recipient": "miner-test",
+            "amount": 50.0,
+            "signature": "",
+        }]
+    })
+    blockchain.mine_block(funding_block, difficulty=4)
+
+    network = NodeNetwork(tmp_path / "nodes.json")
+    network.nodes.add("http://fake-node:8000")
+
+    response_data = {
+        "chain": [
+            {
+                "index": block.index,
+                "timestamp": block.timestamp,
+                "data": block.data,
+                "previous_hash": block.previous_hash,
+                "nonce": block.nonce,
+                "hash": block.stored_hash,
+            }
+            for block in blockchain.chain
+        ]
+    }
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self):
+            return response_data
+
+    def fake_get(*args, **kwargs):
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", fake_get)
+
+    local_blockchain = Blockchain()
+    result = network.replace_chain(local_blockchain)
+
+    assert result is not None
+    assert len(result) == 2
+    assert len(local_blockchain.chain) == 2
+
+
+def test_network_rejects_invalid_chain():
+    from src.waffle.network.node import NodeNetwork
+    from src.waffle.core.block import Block
+
+    network = NodeNetwork()
+
+    blockchain = Blockchain()
+
+    invalid_block = Block(
+        index=1,
+        timestamp=1,
+        data={"message": "invalido"},
+        previous_hash=blockchain.chain[0].hash(),
+        nonce=0,
+    )
+
+    invalid_block.stored_hash = "0000invalid"
+
+    assert network._is_valid_chain(
+        [blockchain.chain[0], invalid_block]
+    ) is False

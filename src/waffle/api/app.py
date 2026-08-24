@@ -53,6 +53,13 @@ def get_balance(address: str):
         "balance": blockchain.get_balance(address),
     }
 
+@app.get("/state")
+def get_state():
+    return {
+        "supply": blockchain.state.get_circulating_supply(),
+        "fee_balance": blockchain.state.get_fee_balance(),
+    }
+
 @app.post("/wallet")
 def create_wallet():
     wallet = Wallet()

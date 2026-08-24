@@ -31,7 +31,26 @@ class Blockchain:
         else:
             self.chain = [self.create_genesis_block()]
 
-        self.pending_transactions = []
+        self.pending_transactions = self._load_pending_transactions()
+
+    def _load_pending_transactions(self):
+        if not self.database:
+            return []
+
+        from .transaction import Transaction
+
+        transactions = []
+
+        for item in self.database.load_pending():
+            transaction = Transaction(
+                sender=item["sender"],
+                recipient=item["recipient"],
+                amount=item["amount"],
+                signature=item.get("signature", ""),
+            )
+            transactions.append(transaction)
+
+        return transactions
 
     def create_genesis_block(self):
         return Block(
@@ -57,6 +76,9 @@ class Blockchain:
             raise ValueError("Insufficient balance")
 
         self.pending_transactions.append(transaction)
+
+        if self.database:
+            self.database.save_pending(self.pending_transactions)
 
     def add_block(self, data):
         previous_block = self.chain[-1]
@@ -124,6 +146,10 @@ class Blockchain:
         block = self.add_block(data)
         self.mine_block(block, difficulty)
         self.pending_transactions = []
+
+        if self.database:
+            self.database.save_pending(self.pending_transactions)
+
         return block
 
     def get_balance(self, address):

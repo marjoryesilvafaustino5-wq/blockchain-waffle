@@ -54,26 +54,69 @@ class NodeNetwork:
                     continue
 
                 data = response.json()
-                chain = data.get("chain", [])
+                chain_data = data.get("chain", [])
 
-                if longest_chain is None or len(chain) > len(longest_chain):
-                    longest_chain = chain
+                if not chain_data:
+                    continue
 
-            except requests.RequestException:
+                candidate_chain = []
+
+                for block_data in chain_data:
+                    block = Block(
+                        index=block_data["index"],
+                        timestamp=block_data["timestamp"],
+                        data=block_data["data"],
+                        previous_hash=block_data["previous_hash"],
+                        nonce=block_data["nonce"],
+                    )
+
+                    received_hash = block_data.get("hash", "")
+                    block.stored_hash = received_hash
+
+                    candidate_chain.append(block)
+
+                if not self._is_valid_chain(candidate_chain):
+                    continue
+
+                if (
+                    longest_chain is None
+                    or len(candidate_chain) > len(longest_chain)
+                ):
+                    longest_chain = candidate_chain
+
+            except (requests.RequestException, KeyError, TypeError, ValueError):
                 continue
 
         if longest_chain and len(longest_chain) > len(blockchain.chain):
-            blockchain.chain = [
-                Block(
-                    index=block["index"],
-                    timestamp=block["timestamp"],
-                    data=block["data"],
-                    previous_hash=block["previous_hash"],
-                    nonce=block["nonce"],
-                    stored_hash=block.get("hash", ""),
-                )
-                for block in longest_chain
-            ]
+            blockchain.chain = longest_chain
             return blockchain.chain
 
         return None
+
+    def _is_valid_chain(self, chain, difficulty=4):
+        if not chain:
+            return False
+
+        target = "0" * difficulty
+
+        for i in range(1, len(chain)):
+            current = chain[i]
+            previous = chain[i - 1]
+
+            if current.hash() != current.stored_hash:
+                return False
+
+            if not current.hash().startswith(target):
+                return False
+
+            if current.previous_hash != previous.hash():
+                return False
+
+            transactions = current.data.get("transactions", [])
+
+            for transaction in transactions:
+                if transaction.get("sender") == "SYSTEM":
+                    if transaction.get("signature") != "":
+                        return False
+
+        return True

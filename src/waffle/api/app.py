@@ -194,17 +194,10 @@ def get_fees():
 
 @app.get("/currency")
 def get_currency():
-    issued = sum(
-        transaction["amount"]
-        for block in blockchain.chain
-        for transaction in block.data.get("transactions", [])
-        if transaction.get("sender") == "SYSTEM"
-    )
-
     return {
         "name": "Waffle",
         "symbol": "WFL",
-        "issued_supply": issued,
+        "issued_supply": blockchain.state.get_circulating_supply(),
         "max_supply": 21_000_000.0,
     }
 
